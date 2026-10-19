@@ -43,11 +43,6 @@ class $modify(FrameWindowMenuLayer, MenuLayer) {
     }
 
     void onFrameWindow(CCObject*) {
-        auto mod = Mod::get();
-        int frames = timingWindow();
-        bool overlay = overlayEnabled();
-        bool details = showDetails();
-
         auto message = fmt::format(
             "PRACTICE CONFIGURATION\n\n"
             "Timing window: +/- {} frames\n"
@@ -55,20 +50,22 @@ class $modify(FrameWindowMenuLayer, MenuLayer) {
             "Extra stats: {}\n\n"
             "The overlay is visual only. It does not change clicks, hitboxes, "
             "collisions, physics, or level completion.",
-            frames,
-            overlay ? "ON" : "OFF",
-            details ? "ON" : "OFF"
+            timingWindow(),
+            overlayEnabled() ? "ON" : "OFF",
+            showDetails() ? "ON" : "OFF"
         );
-        FLAlertLayer::create("Frame Window v0.2.0", message, "OK")->show();
+        FLAlertLayer::create("Frame Window v0.2.1", message, "OK")->show();
     }
 };
 
 class $modify(FrameWindowPlayLayer, PlayLayer) {
     struct Fields {
         CCLabelBMFont* overlay = nullptr;
-        float elapsed = 0.f;
         float refreshElapsed = 0.f;
-        unsigned long long renderedFrames = 0;
+        unsigned long long overlayFrames = 0;
+        unsigned long long clickCount = 0;
+        int lastButton = -1;
+        bool lastPlayer1 = true;
     };
 
     void onEnter() {
@@ -86,10 +83,20 @@ class $modify(FrameWindowPlayLayer, PlayLayer) {
         label->setAnchorPoint({0.f, 1.f});
         label->setPosition({8.f, winSize.height - 8.f});
         label->setScale(0.38f);
-        label->setOpacity(210);
+        label->setOpacity(220);
         this->addChild(label, 1000);
         m_fields->overlay = label;
-        updateOverlay(0.f);
+        updateOverlay();
+    }
+
+    void handleButton(bool down, int button, bool isPlayer1) {
+        // Count actual button-down events only; never synthesize or alter input.
+        if (down) {
+            ++m_fields->clickCount;
+            m_fields->lastButton = button;
+            m_fields->lastPlayer1 = isPlayer1;
+        }
+        PlayLayer::handleButton(down, button, isPlayer1);
     }
 
     void update(float dt) {
@@ -97,34 +104,41 @@ class $modify(FrameWindowPlayLayer, PlayLayer) {
         if (!m_fields->overlay || !overlayEnabled())
             return;
 
-        m_fields->elapsed += dt;
         m_fields->refreshElapsed += dt;
-        ++m_fields->renderedFrames;
+        ++m_fields->overlayFrames;
 
         // Refresh text at about 10 Hz to keep the overlay lightweight.
         if (m_fields->refreshElapsed >= 0.1f) {
-            updateOverlay(m_fields->refreshElapsed);
+            updateOverlay();
             m_fields->refreshElapsed = 0.f;
         }
     }
 
-    void updateOverlay(float) {
+    void updateOverlay() {
         if (!m_fields->overlay)
             return;
 
         auto director = CCDirector::sharedDirector();
         float interval = director ? director->getAnimationInterval() : 0.f;
         int fps = interval > 0.f ? static_cast<int>(0.5f + 1.f / interval) : 0;
+
         auto text = fmt::format(
-            "FRAME WINDOW  |  +/- {} FRAMES\nFPS TARGET: {}",
+            "FRAME WINDOW  |  +/- {} FRAMES\nTARGET FPS: {}",
             timingWindow(),
             fps > 0 ? std::to_string(fps) : std::string("N/A")
         );
 
         if (showDetails()) {
-            auto percent = this->getCurrentPercent();
-            text += fmt::format("\nATTEMPT PROGRESS: {}%", percent);
-            text += fmt::format("\nOVERLAY FRAMES: {}", m_fields->renderedFrames);
+            text += fmt::format("\nCLICKS THIS ATTEMPT: {}", m_fields->clickCount);
+            if (m_fields->lastButton >= 0) {
+                text += fmt::format(
+                    "\nLAST INPUT: BUTTON {} (PLAYER {})",
+                    m_fields->lastButton,
+                    m_fields->lastPlayer1 ? "1" : "2"
+                );
+            }
+            text += fmt::format("\nOVERLAY UPDATES: {}", m_fields->overlayFrames);
+            text += fmt::format("\nPROGRESS: {}%", this->getCurrentPercent());
         }
         m_fields->overlay->setString(text.c_str());
     }
