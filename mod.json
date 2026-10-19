@@ -6,14 +6,14 @@
   },
   "id": "sfj3861.frame-window",
   "name": "Frame Window",
-  "version": "v0.1.0",
+  "version": "v0.2.0",
   "developer": "Sfj3861",
-  "description": "Practice-focused timing overlay for Geometry Dash.",
+  "description": "A lightweight in-level timing practice overlay and stats display.",
   "settings": {
     "window-frames": {
       "type": "int",
       "name": "Timing window (frames)",
-      "description": "Width of the visual practice window. This does not alter gameplay inputs.",
+      "description": "Visual timing window shown by the practice overlay. Does not alter gameplay.",
       "default": 10,
       "min": 0,
       "max": 30
@@ -21,14 +21,14 @@
     "show-overlay": {
       "type": "bool",
       "name": "Show timing overlay",
-      "description": "Show the practice timing indicator while playing.",
+      "description": "Display the practice overlay while playing a level.",
       "default": true
     },
-    "play-click-sound": {
+    "show-details": {
       "type": "bool",
-      "name": "Click feedback",
-      "description": "Reserved for a future practice-only feedback sound.",
-      "default": false
+      "name": "Show extra stats",
+      "description": "Include attempt progress and overlay frame count.",
+      "default": true
     }
   },
   "tags": ["practice", "utility"]
