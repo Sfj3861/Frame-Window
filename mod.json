@@ -6,9 +6,9 @@
   },
   "id": "sfj3861.frame-window",
   "name": "Frame Window",
-  "version": "v0.2.1",
+  "version": "v0.2.2",
   "developer": "Sfj3861",
-  "description": "A lightweight in-level timing practice overlay and stats display.",
+  "description": "Timing practice overlay with real input event logging.",
   "settings": {
     "window-frames": {
       "type": "int",
@@ -27,7 +27,7 @@
     "show-details": {
       "type": "bool",
       "name": "Show extra stats",
-      "description": "Include attempt progress and overlay frame count.",
+      "description": "Include input counts, latest input, frame count, and attempt progress.",
       "default": true
     }
   },
