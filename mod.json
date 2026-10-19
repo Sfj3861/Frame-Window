@@ -6,7 +6,7 @@
   },
   "id": "sfj3861.frame-window",
   "name": "Frame Window",
-  "version": "v0.2.0",
+  "version": "v0.2.1",
   "developer": "Sfj3861",
   "description": "A lightweight in-level timing practice overlay and stats display.",
   "settings": {
@@ -31,5 +31,8 @@
       "default": true
     }
   },
-  "tags": ["practice", "utility"]
+  "tags": [
+    "practice",
+    "utility"
+  ]
 }
