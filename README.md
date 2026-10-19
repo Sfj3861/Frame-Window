@@ -1,24 +1,22 @@
 # Frame Window
 
-Frame Window is a Geometry Dash / Geode practice utility.
+Geometry Dash / Geode timing-practice utility.
 
-## Features in v0.2.1
-- Adds a **Frame Window** button to the main menu with the active settings.
-- Displays an in-level overlay with the configured timing-window size.
-- Shows the target frame rate derived from the game's animation interval.
-- Counts actual button-down events and displays the latest button/player identifier.
-- Optional stats include attempt progress and overlay update count.
-- Configurable visual timing window from 0 to 30 frames.
-- Visual-only: does not synthesize inputs or modify input timing, hitboxes, collisions, player physics, or level completion.
+## v0.2.2 — input recorder
+- Records each real `handleButton` DOWN and UP event received by PlayLayer.
+- Writes elapsed attempt time, game update-frame counter, event type, button identifier and player identifier to the Geode log.
+- Displays input down/up counts and the most recent input in the optional in-level overlay.
+- Shows configured visual timing window, target FPS, frame count and attempt progress.
+- Does not synthesize, delay, correct, or rewrite inputs, and does not modify collisions or physics.
 
-## Compatibility
-The manifest requests Geometry Dash 2.2081 for Android and Windows. A successful build and in-game test are still required to confirm compatibility with the installed Geode SDK and game build.
+## Compatibility and build status
+The manifest requests Geometry Dash 2.2081 on Android and Windows. The GitHub Actions workflow attempts Android32 and Android64 builds, then combines the packages into an artifact. This repository update is not itself proof that compilation succeeded; check the Actions run and download its artifact if the workflow completes successfully.
 
-## Build
-Use a matching Geode SDK / CLI and run:
+## Local build
+With a compatible Geode SDK and CLI installed:
 
 ```sh
-geode build
+geode build -p android64
+# or for 32-bit Android:
+geode build -p android32
 ```
-
-The GitHub Actions workflow under `.github/workflows/build-android.yml` attempts Android32 and Android64 builds and combines their `.geode` packages into an artifact.
