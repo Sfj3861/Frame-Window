@@ -1,23 +1,23 @@
 # Frame Window
 
-A Geode starter project for a Geometry Dash timing-practice utility.
+Frame Window is a Geometry Dash / Geode practice utility.
 
-## Current scope
+## Features in v0.2.0
 - Adds a **Frame Window** button to the main menu.
-- Reads persistent settings from Geode's mod settings.
-- Shows the configured practice window and overlay/feedback toggles.
-- Does **not** modify player inputs, collisions, physics, or level completion.
+- Displays an in-level overlay with the configured timing window.
+- Shows the target frame rate derived from the game's animation interval.
+- Optional extra stats: attempt progress and overlay update count.
+- Configurable timing window from 0 to 30 frames.
+- Visual-only: does not modify input timing, hitboxes, collisions, player physics, or level completion.
 
 ## Compatibility
-The metadata currently declares Geometry Dash 2.2081 as the requested target. This is not proof that a compatible Geode SDK/loader build exists for that exact Android build. Confirm the installed Geode SDK version and supported GD bindings before compiling.
+The manifest requests Geometry Dash 2.2081 for Android and Windows. A successful build and in-game test are still required to confirm compatibility with the installed Geode SDK and game build.
 
 ## Build
-Install a matching Geode SDK and Geode CLI, then follow the official documentation:
-https://docs.geode-sdk.org/
+Use a matching Geode SDK / CLI and run:
 
-Typical command:
 ```sh
 geode build
 ```
 
-If your local SDK uses a different Geode version, update the `geode` field in `mod.json` to the exact version you build against.
+The GitHub Actions workflow under `.github/workflows/build-android.yml` attempts Android32 and Android64 builds and uploads the combined `.geode` as an artifact.
