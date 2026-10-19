@@ -1,0 +1,35 @@
+{
+  "geode": "v4.0.0",
+  "gd": {
+    "android": "2.2081",
+    "win": "2.2081"
+  },
+  "id": "sfj3861.frame-window",
+  "name": "Frame Window",
+  "version": "v0.1.0",
+  "developer": "Sfj3861",
+  "description": "Practice-focused timing overlay for Geometry Dash.",
+  "settings": {
+    "window-frames": {
+      "type": "int",
+      "name": "Timing window (frames)",
+      "description": "Width of the visual practice window. This does not alter gameplay inputs.",
+      "default": 10,
+      "min": 0,
+      "max": 30
+    },
+    "show-overlay": {
+      "type": "bool",
+      "name": "Show timing overlay",
+      "description": "Show the practice timing indicator while playing.",
+      "default": true
+    },
+    "play-click-sound": {
+      "type": "bool",
+      "name": "Click feedback",
+      "description": "Reserved for a future practice-only feedback sound.",
+      "default": false
+    }
+  },
+  "tags": ["practice", "utility"]
+}
