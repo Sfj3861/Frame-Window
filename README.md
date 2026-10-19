@@ -1,5 +1,7 @@
 # Frame Window
 
+[![Frame Window CI](https://github.com/Sfj3861/Frame-Window/actions/workflows/build-android.yml/badge.svg?branch=main)](https://github.com/Sfj3861/Frame-Window/actions/workflows/build-android.yml)
+
 Geometry Dash / Geode timing-practice utility.
 
 ## Android CI
