@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Validate required files
+      - name: Validate project files and manifest
         shell: bash
         run: |
           set -euo pipefail
@@ -32,27 +32,19 @@ jobs:
           test -f mod.json
           test -f src/main.cpp
           test -f README.md
-          test -f .github/workflows/build-android.yml
-
-      - name: Validate mod manifest
-        shell: bash
-        run: |
-          set -euo pipefail
           python3 - <<'PY'
           import json
           from pathlib import Path
-
           manifest = json.loads(Path("mod.json").read_text(encoding="utf-8"))
           required = ("geode", "gd", "id", "name", "version", "developer", "description")
           missing = [key for key in required if key not in manifest]
           if missing:
-              raise SystemExit(f"mod.json is missing required keys: {', '.join(missing)}")
+              raise SystemExit(f"mod.json missing keys: {', '.join(missing)}")
+          if manifest["geode"] != "v5.11.2":
+              raise SystemExit(f"Expected stable Geode SDK v5.11.2, got {manifest['geode']!r}")
           if not isinstance(manifest["gd"], dict) or not manifest["gd"]:
-              raise SystemExit("mod.json must declare at least one supported GD platform/version")
-          for platform, version in manifest["gd"].items():
-              if not isinstance(version, str) or not version.strip():
-                  raise SystemExit(f"Invalid GD version for {platform!r}")
-          print(f"Manifest OK: {manifest['id']} {manifest['version']}")
+              raise SystemExit("mod.json must declare a supported GD version")
+          print(f"Manifest OK: {manifest['id']} {manifest['version']} (Geode {manifest['geode']})")
           PY
 
       - name: Check release tag matches mod version
@@ -81,11 +73,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Build Geode mod
+      - name: Build Geode mod from the latest stable SDK
         uses: geode-sdk/build-geode-mod@main
         with:
           target: ${{ matrix.target }}
-          sdk: given
+          sdk: latest
           combine: true
 
   package:
@@ -129,7 +121,7 @@ jobs:
           name: Frame-Window-Android
           path: release-files
 
-      - name: Publish release and attach .geode
+      - name: Publish GitHub release and attach .geode
         uses: softprops/action-gh-release@v2
         with:
           files: release-files/*.geode
