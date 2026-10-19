@@ -1,26 +1,85 @@
-name: Build Frame Window
+name: Frame Window CI
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
-  actions: write
+
+concurrency:
+  group: frame-window-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  validate:
+    name: Validate project files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Validate required files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f CMakeLists.txt
+          test -f mod.json
+          test -f src/main.cpp
+          test -f README.md
+          test -f .github/workflows/build-android.yml
+
+      - name: Validate mod manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          manifest = json.loads(Path("mod.json").read_text(encoding="utf-8"))
+          required = ("geode", "gd", "id", "name", "version", "developer", "description")
+          missing = [key for key in required if key not in manifest]
+          if missing:
+              raise SystemExit(f"mod.json is missing required keys: {', '.join(missing)}")
+          if not isinstance(manifest["gd"], dict) or not manifest["gd"]:
+              raise SystemExit("mod.json must declare at least one supported GD platform/version")
+          for platform, version in manifest["gd"].items():
+              if not isinstance(version, str) or not version.strip():
+                  raise SystemExit(f"Invalid GD version for {platform!r}")
+          print(f"Manifest OK: {manifest['id']} {manifest['version']}")
+          PY
+
+      - name: Check release tag matches mod version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="$(python3 -c 'import json; print(json.load(open("mod.json", encoding="utf-8"))["version"])')"
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "::error::Tag $TAG does not match mod.json version $VERSION"
+            exit 1
+          fi
+
   build:
     name: Build Android ${{ matrix.target }}
+    needs: validate
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        target: [Android32, Android64]
+        target:
+          - Android32
+          - Android64
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Build Geode mod
         uses: geode-sdk/build-geode-mod@main
@@ -30,18 +89,48 @@ jobs:
           combine: true
 
   package:
-    name: Combine Android builds
-    runs-on: ubuntu-latest
+    name: Combine Android packages
     needs: build
+    runs-on: ubuntu-latest
     steps:
-      - name: Combine .geode files
+      - name: Combine Android builds
         id: combine
         uses: geode-sdk/build-geode-mod/combine@main
 
+      - name: Verify package exists
+        shell: bash
+        env:
+          BUILD_OUTPUT: ${{ steps.combine.outputs.build-output }}
+        run: |
+          set -euo pipefail
+          test -n "$BUILD_OUTPUT"
+          find "$BUILD_OUTPUT" -maxdepth 1 -type f -name '*.geode' -print -quit | grep -q .
+          echo "Combined .geode package found."
+
       - name: Upload installable mod
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Frame-Window-Android
           path: ${{ steps.combine.outputs.build-output }}/*.geode
           if-no-files-found: error
           retention-days: 14
+
+  release:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download built package
+        uses: actions/download-artifact@v7
+        with:
+          name: Frame-Window-Android
+          path: release-files
+
+      - name: Publish release and attach .geode
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-files/*.geode
+          generate_release_notes: true
