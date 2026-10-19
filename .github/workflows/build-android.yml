@@ -40,8 +40,8 @@ jobs:
           missing = [key for key in required if key not in manifest]
           if missing:
               raise SystemExit(f"mod.json missing keys: {', '.join(missing)}")
-          if manifest["geode"] != "v5.11.2":
-              raise SystemExit(f"Expected stable Geode SDK v5.11.2, got {manifest['geode']!r}")
+          if manifest["geode"] != "5.11.2":
+              raise SystemExit(f"Expected stable Geode SDK 5.11.2, got {manifest['geode']!r}")
           if not isinstance(manifest["gd"], dict) or not manifest["gd"]:
               raise SystemExit("mod.json must declare a supported GD version")
           print(f"Manifest OK: {manifest['id']} {manifest['version']} (Geode {manifest['geode']})")
